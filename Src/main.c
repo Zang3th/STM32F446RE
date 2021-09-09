@@ -1,10 +1,17 @@
-#include <stdint.h>
-#include "stm32f4xx.h"
+#include "stm32f446xx.h"
+#include "system_stm32f4xx.h"
+
+#include "alUtility.h"
+#include "alGPIO.h"
 
 int main(void)
 {
-    uint32_t rccCRState = 0UL;
-    rccCRState = RCC->CR;
+	gpioInitPort(GPIOA);
+	gpioSelectPinMode(GPIOA, PIN0, OUTPUT);
 
-	for(;;);
+	while(1)
+	{
+		gpioTogglePin(GPIOA, PIN0);
+		delayMS(100);
+	}
 }
