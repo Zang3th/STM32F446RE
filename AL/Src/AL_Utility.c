@@ -1,6 +1,6 @@
-#include "alUtility.h"
+#include <AL_Utility.h>
 
-void delayMS(uint16_t delay)
+void AL_delayMS(uint16_t delay)
 {
 	uint16_t i = 0;
 

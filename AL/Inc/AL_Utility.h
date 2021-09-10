@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void delayMS(uint16_t delay);
+void AL_delayMS(uint16_t delay);
 
 #endif
