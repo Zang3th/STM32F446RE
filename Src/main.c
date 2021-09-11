@@ -5,9 +5,18 @@
 #include "AL_Utility.h"
 #include "AL_EXTI.h"
 
+extern 	void SystemCoreClockUpdate(void);
+		void SysTick_Handler(void);
+
+uint16_t tick = 0;
+
 int main(void)
 {
 	__disable_irq();
+
+	//Configure SysTick
+	SystemCoreClockUpdate(); //ARM-Function => sets SysTick depending on System-Clock
+	SysTick_Config(SystemCoreClock / 1000); //SysTick = 1ms
 
 	//Activate clocks
 	AL_gpioInitPort(GPIOA);
@@ -36,16 +45,18 @@ int main(void)
 	AL_extiSetTriggerEdge(EXTI_PIN0, FALLING_EDGE);
 	AL_extiSetTriggerEdge(EXTI_PIN1, FALLING_EDGE);
 
-	NVIC_EnableIRQ(EXTI0_IRQn);            			// EXTI0: Aktivieren
-	NVIC_EnableIRQ(EXTI1_IRQn);            			// EXTI1: Aktivieren
+	NVIC_EnableIRQ(EXTI0_IRQn); // EXTI0: Aktivieren
+	NVIC_EnableIRQ(EXTI1_IRQn); // EXTI1: Aktivieren
 
 	__enable_irq();
 
 	while(1)
 	{
-		//Keep alive signal
-		AL_gpioTogglePin(GPIOA, PIN5);
-		AL_delayMS(200);
+		if(tick > 199)
+		{
+			AL_gpioTogglePin(GPIOA, PIN5); //Keep alive signal
+			tick = 0;
+		}
 	}
 }
 
@@ -59,4 +70,9 @@ void EXTI1_IRQHandler(void)
 {
 	AL_gpioResetPin(GPIOA, PIN4);
     AL_extiResetPending(EXTI_PIN1);
+}
+
+void SysTick_Handler(void)
+{
+	++tick;
 }
