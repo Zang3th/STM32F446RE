@@ -3,27 +3,41 @@
 
 #include "AL_GPIO.h"
 #include "AL_Utility.h"
+#include "AL_EXTI.h"
 
 int main(void)
 {
 	__disable_irq();
 
+	//Activate clocks
 	AL_gpioInitPort(GPIOA);
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+	//Configure GPIOA
 	AL_gpioSelectPinMode(GPIOA, PIN0, INPUT);
-	AL_gpioSelectPinMode(GPIOA, PIN1, OUTPUT);
+	AL_gpioSelectPinMode(GPIOA, PIN1, INPUT);
+	AL_gpioSelectPinMode(GPIOA, PIN4, OUTPUT);
 	AL_gpioSelectPinMode(GPIOA, PIN5, OUTPUT);
-	AL_gpioSetOutputType(GPIOA, PIN0, PUSHPULL); //Müsste Standard sein
-	AL_gpioSetOutputType(GPIOA, PIN1, PUSHPULL); //Müsste Standard sein
-	AL_gpioSetOutputType(GPIOA, PIN5, PUSHPULL); //Müsste Standard sein
+	AL_gpioSetOutputType(GPIOA, PIN0, PUSHPULL);
+	AL_gpioSetOutputType(GPIOA, PIN1, PUSHPULL);
+	AL_gpioSetOutputType(GPIOA, PIN4, PUSHPULL);
+	AL_gpioSetOutputType(GPIOA, PIN5, PUSHPULL);
 	AL_gpioSelectPushPullType(GPIOA, PIN0, NO_PULLUP_PULLDOWN);
 	AL_gpioSelectPushPullType(GPIOA, PIN1, NO_PULLUP_PULLDOWN);
+	AL_gpioSelectPushPullType(GPIOA, PIN4, NO_PULLUP_PULLDOWN);
 	AL_gpioSelectPushPullType(GPIOA, PIN5, NO_PULLUP_PULLDOWN);
 
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;  // SYSCFG: Clock an
-	SYSCFG->EXTICR[0] &= ~0x000F;          // EXTI0 an
-	EXTI->IMR  |= EXTI_IMR_IM0;            // EXTI: PA0 Enable IRQ
-	EXTI->FTSR |= EXTI_FTSR_TR0;           // EXTI: PA0 Fallende Flanke
-	NVIC_EnableIRQ(EXTI0_IRQn);            // EXTI0: Aktivieren
+	//Configure EXTI
+	AL_extiInit();
+	AL_extiConfigIrq(GPIOA, PIN0);
+	AL_extiConfigIrq(GPIOA, PIN1);
+	AL_extiEnableIrq(EXTI_PIN0);
+	AL_extiEnableIrq(EXTI_PIN1);
+	AL_extiSetTriggerEdge(EXTI_PIN0, FALLING_EDGE);
+	AL_extiSetTriggerEdge(EXTI_PIN1, FALLING_EDGE);
+
+	NVIC_EnableIRQ(EXTI0_IRQn);            			// EXTI0: Aktivieren
+	NVIC_EnableIRQ(EXTI1_IRQn);            			// EXTI1: Aktivieren
 
 	__enable_irq();
 
@@ -37,6 +51,12 @@ int main(void)
 
 void EXTI0_IRQHandler(void)
 {
-    AL_gpioTogglePin(GPIOA, PIN1);
-    EXTI->PR |= EXTI_PR_PR0; //Reset IRQ-Pending-Flag
+    AL_gpioSetPin(GPIOA, PIN4);
+    AL_extiResetPending(EXTI_PIN0);
+}
+
+void EXTI1_IRQHandler(void)
+{
+	AL_gpioResetPin(GPIOA, PIN4);
+    AL_extiResetPending(EXTI_PIN1);
 }
