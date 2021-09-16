@@ -6,25 +6,10 @@
 #include "AL_EXTI.h"
 #include "AL_SysTick.h"
 
-#define TIMER0_VALUE 500
-#define TIMER1_VALUE 1000
+#define TIMER0_VALUE 200
 
-int main(void)
+void configureGPIO()
 {
-	__disable_irq();
-
-	//Configure SysTick and create timers
-	AL_sysTickInit(SYSTICK_PRECISION_1MS);
-	uint32_t  timer0 = TIMER0_VALUE;
-	uint32_t  timer1 = TIMER1_VALUE;
-	uint32_t* timerList[] = {&timer0, &timer1};
-	uint32_t  timerListSize = sizeof(timerList) / sizeof(uint32_t);
-
-	//Activate clocks
-	AL_gpioInitPort(GPIOA);
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-
-	//Configure GPIOA
 	AL_gpioSelectPinMode(GPIOA, PIN0, INPUT);
 	AL_gpioSelectPinMode(GPIOA, PIN1, INPUT);
 	AL_gpioSelectPinMode(GPIOA, PIN4, OUTPUT);
@@ -37,8 +22,10 @@ int main(void)
 	AL_gpioSelectPushPullType(GPIOA, PIN1, NO_PULLUP_PULLDOWN);
 	AL_gpioSelectPushPullType(GPIOA, PIN4, NO_PULLUP_PULLDOWN);
 	AL_gpioSelectPushPullType(GPIOA, PIN5, NO_PULLUP_PULLDOWN);
+}
 
-	//Configure EXTI
+void configureInterrupts()
+{
 	AL_extiInit();
 	AL_extiConfigIrq(GPIOA, PIN0);
 	AL_extiConfigIrq(GPIOA, PIN1);
@@ -49,15 +36,33 @@ int main(void)
 
 	NVIC_EnableIRQ(EXTI0_IRQn); // EXTI0: Aktivieren
 	NVIC_EnableIRQ(EXTI1_IRQn); // EXTI1: Aktivieren
+}
+
+int main(void)
+{
+	__disable_irq();
+
+	//Configure SysTick and create timers
+	AL_sysTickInit(SYSTICK_PRECISION_1MS);
+	uint32_t  timer0 = TIMER0_VALUE;
+	uint32_t* timerList[] = {&timer0};
+	uint32_t  timerListSize = sizeof(timerList) / sizeof(uint32_t);
+
+	//Activate clocks
+	AL_gpioInitPort(GPIOA);
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+	configureGPIO();
+	configureInterrupts();
 
 	__enable_irq();
 
 	while(1)
 	{
-		if(AL_sysTickTimerExpired(timer1) == true)
+		if(AL_sysTickTimerExpired(timer0) == true)
 		{
 			AL_gpioTogglePin(GPIOA, PIN5); //Keep alive signal
-			timer1 = TIMER1_VALUE;
+			timer0 = TIMER0_VALUE;
 		}
 
 		AL_sysTickUpdateTimers(timerList, timerListSize);
