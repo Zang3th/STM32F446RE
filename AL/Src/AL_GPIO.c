@@ -1,4 +1,4 @@
-#include <AL_GPIO.h>
+#include "AL_GPIO.h"
 
 void AL_gpioInitPort(GPIO_TypeDef *port)
 {
@@ -72,10 +72,10 @@ void AL_gpioTogglePin(GPIO_TypeDef *port, PIN_NUM pin)
 
 void AL_gpioSelectAltFunc(GPIO_TypeDef *port, PIN_NUM pin, ALT_FUNC af)
 {
-	// Dont't forget to select the alternative function mode before...
+	// Don't forget to select the alternative function mode before...
 	AL_gpioSelectPinMode(port, pin, ALTFUNC);
 
-	if (pin <= PIN7)
+	if(pin <= PIN7)
 	{
 		port->AFR[0] &= ~(0x0F << (pin * 4));       // Reset previously selected AF
 		port->AFR[0] |= af << (pin * 4);            // Set AFR[0] to the new AF
@@ -90,10 +90,10 @@ void AL_gpioSelectAltFunc(GPIO_TypeDef *port, PIN_NUM pin, ALT_FUNC af)
 
 bool AL_gpioSetOutputType(GPIO_TypeDef *port, PIN_NUM pin, OUTPUT_TYPE outType)
 {
-	if (pin >= PIN0 && pin <= PIN15)
+	if(pin >= PIN0 && pin <= PIN15)
 	{
 		port->OTYPER &= ~(1 << pin);   // Use pin as push-pull output
-		if (OPENDRAIN == outType)
+		if(OPENDRAIN == outType)
 		{
 			port->OTYPER |= (1 << pin);
 		}
@@ -110,13 +110,13 @@ void AL_gpioSelectPushPullType(GPIO_TypeDef *port, PIN_NUM pin, PUPD_MODE pupd)
 {
     port->PUPDR &= ~(0x03 << (pin * 2));        // Disable PU/PD
 
-    if (port->OTYPER == PUSHPULL)
+    if(port->OTYPER == PUSHPULL)
 	{
-		if (PULLUP == pupd)
+		if(PULLUP == pupd)
 		{
 			port->PUPDR |= (PULLUP << (pin *2));
 		}
-		else if (PULLDOWN == pupd)
+		else if(PULLDOWN == pupd)
 		{
 			port->PUPDR |= (PULLDOWN << (pin *2));
 		}
@@ -127,15 +127,15 @@ void AL_gpioSetOutputSpeed(GPIO_TypeDef *port, PIN_NUM pin, GPIO_SPEED speed)
 {
 	port->OSPEEDR &= (LOW_SPEED << (pin * 2));	// Default: Low speed
 
-	if (MEDIUM_SPEED == speed)
+	if(MEDIUM_SPEED == speed)
 	{
 		port->OSPEEDR |= (MEDIUM_SPEED << (pin * 2));
 	}
-	else if (FAST_SPEED == speed)
+	else if(FAST_SPEED == speed)
 	{
 		port->OSPEEDR |= (FAST_SPEED << (pin * 2));
 	}
-	else if (HIGH_SPEED == speed)
+	else if(HIGH_SPEED == speed)
 	{
 		port->OSPEEDR |= (HIGH_SPEED << (pin * 2));
 	}

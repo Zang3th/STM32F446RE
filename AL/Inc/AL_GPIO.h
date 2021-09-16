@@ -6,6 +6,7 @@
 
 #include "stm32f4xx.h"
 
+/* Typedefs */
 typedef enum
 {
 	PIN0 = 0,
@@ -75,6 +76,7 @@ typedef enum
 	HIGH_SPEED
 } GPIO_SPEED;
 
+/* Function prototypes */
 void 	 AL_gpioInitPort(GPIO_TypeDef *port);
 void 	 AL_gpioSelectPinMode(GPIO_TypeDef *port, PIN_NUM pin, PIN_MODE mode);
 void 	 AL_gpioSetPin(GPIO_TypeDef *port, PIN_NUM pin);

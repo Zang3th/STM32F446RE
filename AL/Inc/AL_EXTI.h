@@ -9,6 +9,7 @@
 
 #include "AL_GPIO.h"
 
+/* Typedefs */
 typedef enum
 {
     PORT_A = 0,    // EXTI mask for GPIOA
@@ -55,6 +56,7 @@ typedef enum
     RISING_AND_FALLING
 } EXTI_TRIGGER;
 
+/* Function prototypes */
 void AL_extiInit(void);
 void AL_extiConfigIrq(GPIO_TypeDef *port, PIN_NUM pin);
 void AL_extiEnableIrq(EXTI_IRQ_NUM irqNum);

@@ -1,22 +1,24 @@
-#include "stm32f446xx.h"
+#include "stm32f4xx.h"
 #include "system_stm32f4xx.h"
 
 #include "AL_GPIO.h"
 #include "AL_Utility.h"
 #include "AL_EXTI.h"
+#include "AL_SysTick.h"
 
-extern 	void SystemCoreClockUpdate(void);
-		void SysTick_Handler(void);
-
-uint16_t tick = 0;
+#define TIMER0_VALUE 500
+#define TIMER1_VALUE 1000
 
 int main(void)
 {
 	__disable_irq();
 
-	//Configure SysTick
-	SystemCoreClockUpdate(); //ARM-Function => sets SysTick depending on System-Clock
-	SysTick_Config(SystemCoreClock / 1000); //SysTick = 1ms
+	//Configure SysTick and create timers
+	AL_sysTickInit(SYSTICK_PRECISION_1MS);
+	uint32_t  timer0 = TIMER0_VALUE;
+	uint32_t  timer1 = TIMER1_VALUE;
+	uint32_t* timerList[] = {&timer0, &timer1};
+	uint32_t  timerListSize = sizeof(timerList) / sizeof(uint32_t);
 
 	//Activate clocks
 	AL_gpioInitPort(GPIOA);
@@ -52,11 +54,13 @@ int main(void)
 
 	while(1)
 	{
-		if(tick > 199)
+		if(AL_sysTickTimerExpired(timer1) == true)
 		{
 			AL_gpioTogglePin(GPIOA, PIN5); //Keep alive signal
-			tick = 0;
+			timer1 = TIMER1_VALUE;
 		}
+
+		AL_sysTickUpdateTimers(timerList, timerListSize);
 	}
 }
 
@@ -70,9 +74,4 @@ void EXTI1_IRQHandler(void)
 {
 	AL_gpioResetPin(GPIOA, PIN4);
     AL_extiResetPending(EXTI_PIN1);
-}
-
-void SysTick_Handler(void)
-{
-	++tick;
 }
