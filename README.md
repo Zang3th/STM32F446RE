@@ -1,8 +1,8 @@
 # STM32F446RE on a Nucleo-64 development board
 
 ### Layout
-   ![Board](F446RE_Board.jpeg)
-   ![PinOut](F446RE_PinOut.png)
+   ![Board](Res/F446RE_Board.jpeg)
+   ![PinOut](Res/F446RE_PinOut.png)
 
 ### Documentation
    - [F446RE Datasheet](https://www.st.com/resource/en/datasheet/stm32f446re.pdf)
