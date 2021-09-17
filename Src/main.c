@@ -5,11 +5,13 @@
 #include "AL_Utility.h"
 #include "AL_EXTI.h"
 #include "AL_SysTick.h"
+#include "AL_Timer.h"
 
-#define TIMER0_VALUE 200
+bool tim6Trigger = false;
 
 void configureGPIO()
 {
+	AL_gpioInitPort(GPIOA);
 	AL_gpioSelectPinMode(GPIOA, PIN0, INPUT);
 	AL_gpioSelectPinMode(GPIOA, PIN1, INPUT);
 	AL_gpioSelectPinMode(GPIOA, PIN4, OUTPUT);
@@ -26,6 +28,9 @@ void configureGPIO()
 
 void configureInterrupts()
 {
+	//Activate syscfg clock (needed for exti)
+	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
 	AL_extiInit();
 	AL_extiConfigIrq(GPIOA, PIN0);
 	AL_extiConfigIrq(GPIOA, PIN1);
@@ -42,31 +47,33 @@ int main(void)
 {
 	__disable_irq();
 
-	//Configure SysTick and create timers
-	AL_sysTickInit(SYSTICK_PRECISION_1MS);
-	uint32_t  timer0 = TIMER0_VALUE;
-	uint32_t* timerList[] = {&timer0};
-	uint32_t  timerListSize = sizeof(timerList) / sizeof(uint32_t);
-
-	//Activate clocks
-	AL_gpioInitPort(GPIOA);
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-
 	configureGPIO();
 	configureInterrupts();
+
+	//Configure timer
+	AL_timerBusClkOn(TIM6);
+	AL_timerSetPrescaler(TIM6, (1600 - 1));
+	AL_timerSetAutoReloadValue(TIM6, (5000 - 1));
+	AL_timerEnableInterrupt(TIM6);
+	AL_timerStart(TIM6);
+	NVIC_EnableIRQ(TIM6_DAC_IRQn);
 
 	__enable_irq();
 
 	while(1)
 	{
-		if(AL_sysTickTimerExpired(timer0) == true)
+		if(tim6Trigger == true)
 		{
-			AL_gpioTogglePin(GPIOA, PIN5); //Keep alive signal
-			timer0 = TIMER0_VALUE;
+			AL_gpioTogglePin(GPIOA, PIN5);
+		    tim6Trigger = false;
 		}
-
-		AL_sysTickUpdateTimers(timerList, timerListSize);
 	}
+}
+
+void TIM6_DAC_IRQHandler(void)
+{
+    tim6Trigger = true;
+    TIM6->SR = 0;
 }
 
 void EXTI0_IRQHandler(void)
