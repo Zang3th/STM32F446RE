@@ -6,6 +6,7 @@
 #include "AL_EXTI.h"
 #include "AL_SysTick.h"
 #include "AL_Timer.h"
+#include "AL_Usart.h"
 
 bool tim6Trigger = false;
 
@@ -43,12 +44,18 @@ void configureInterrupts()
 	NVIC_EnableIRQ(EXTI1_IRQn); // EXTI1: Aktivieren
 }
 
+void configureUSART()
+{
+
+}
+
 int main(void)
 {
 	__disable_irq();
 
 	configureGPIO();
 	configureInterrupts();
+	configureUSART();
 
 	//Configure timer
 	AL_timerBusClkOn(TIM6);
