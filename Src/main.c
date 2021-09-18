@@ -4,13 +4,9 @@
 #include "AL_GPIO.h"
 #include "AL_Utility.h"
 #include "AL_EXTI.h"
-#include "AL_SysTick.h"
 #include "AL_Timer.h"
-#include "AL_Usart.h"
 
 bool tim6Trigger = false;
-char* LED_an  = "LED an!\n";
-char* LED_aus = "LED aus!\n";
 
 void configureGPIO()
 {
@@ -46,25 +42,13 @@ void configureInterrupts()
 	NVIC_EnableIRQ(EXTI1_IRQn); // EXTI1: Aktivieren
 }
 
-void configureUSART()
-{
-	AL_gpioSelectPinMode(GPIOA, PIN2, ALTFUNC);      // PA2   : Modus = Alt. Funktion
-	AL_gpioSelectAltFunc(GPIOA, PIN2, AF7);          // PA2   : AF7 = USART2 Rx
-	AL_gpioSelectPinMode(GPIOA, PIN3, ALTFUNC);      // PA3   : Modus = Alt. Funktion
-	AL_gpioSelectAltFunc(GPIOA, PIN3, AF7);          // PA3   : AF7 = USART2 Tx
-
-	AL_usartSelectUsart(USART2);
-	AL_usartStartUsart(USART2);
-	AL_usartSetCommParams(USART2, 9600, NO_PARITY, LEN_8BIT, ONE_BIT);
-}
-
 int main(void)
 {
 	__disable_irq();
 
 	configureGPIO();
 	configureInterrupts();
-	configureUSART();
+	AL_initUtilities();
 
 	//Configure timer
 	AL_timerBusClkOn(TIM6);
@@ -96,12 +80,12 @@ void EXTI0_IRQHandler(void)
 {
     AL_gpioSetPin(GPIOA, PIN4);
     AL_extiResetPending(EXTI_PIN0);
-	AL_usartSendString(USART2, LED_an);
+    AL_printf("LED on!\n");
 }
 
 void EXTI1_IRQHandler(void)
 {
 	AL_gpioResetPin(GPIOA, PIN4);
     AL_extiResetPending(EXTI_PIN1);
-	AL_usartSendString(USART2, LED_aus);
+    AL_printf("LED off!\n");
 }
